@@ -9,20 +9,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração do PostgreSQL utilizando as variáveis individuais do .env
+// Configuração do PostgreSQL utilizando a DATABASE_URL da nuvem (Neon/Render)
 const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASS,
-    port: process.env.DB_PORT,
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false // Necessário para conexões seguras externas no Neon
+    }
 });
 
-// Criar tabela de usuários automaticamente se não existir
+// Criar tabela de usuários automaticamente se não existir (incluindo a coluna is_approved)
 pool.query(`CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    is_approved BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`, (err) => {
     if (err) console.error('Erro ao criar tabela:', err);
@@ -37,6 +37,7 @@ app.post('/api/register', async (req, res) => {
         await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2)', [email, hashedPassword]);
         res.json({ success: true, message: 'Usuário cadastrado com sucesso!' });
     } catch (err) {
+        console.error('Erro no cadastro:', err);
         res.status(400).json({ success: false, message: 'Erro: E-mail já cadastrado.' });
     }
 });
@@ -68,13 +69,13 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Rota para listar usuários pendentes (Protegida por senha simples de admin)
+// Rota para listar usuários pendentes
 app.get('/api/admin/users', async (req, res) => {
-    // Em produção, adicione um token de segurança aqui. Para testes, vamos listar todos:
     try {
         const result = await pool.query('SELECT id, email, is_approved, created_at FROM users ORDER BY created_at DESC');
         res.json(result.rows);
     } catch (err) {
+        console.error('Erro ao buscar usuários:', err);
         res.status(500).json({ error: 'Erro ao buscar usuários' });
     }
 });
@@ -86,6 +87,7 @@ app.post('/api/admin/approve', async (req, res) => {
         await pool.query('UPDATE users SET is_approved = TRUE WHERE id = $1', [userId]);
         res.json({ success: true, message: 'Usuário aprovado com sucesso!' });
     } catch (err) {
+        console.error('Erro ao aprovar usuário:', err);
         res.status(500).json({ error: 'Erro ao aprovar usuário' });
     }
 });
