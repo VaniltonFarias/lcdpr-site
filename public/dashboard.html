@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Área do Cliente - LCDPR-Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
+    <!-- Navbar -->
+    <header class="bg-emerald-800 text-white shadow-md">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wide">LCDPR-Pro <span class="text-emerald-300 text-sm font-normal">| Área do Cliente</span></h1>
+            <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded text-sm font-semibold transition">Sair</button>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="container mx-auto px-6 py-12 max-w-4xl">
+        <div class="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+            <div class="flex items-center space-x-4 mb-6">
+                <div class="bg-emerald-100 p-3 rounded-full text-emerald-600 font-bold text-xl">🚀</div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Bem-vindo ao LCDPR-Pro!</h2>
+                    <p class="text-gray-600 text-sm">Sua conta está ativa e pronta para uso. Faça o download da versão mais recente abaixo.</p>
+                </div>
+            </div>
+
+            <hr class="my-6 border-gray-100">
+
+            <!-- Seção de Download -->
+            <div class="bg-emerald-50 rounded-lg p-6 border border-emerald-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h3 class="font-bold text-emerald-900 text-lg">LCDPR-Pro - Versão de Teste / Instalação</h3>
+                    <p class="text-emerald-700 text-sm">Versão atualizada com suporte completo à apuração rural.</p>
+                </div>
+                <a href="#" onclick="alert('Simulação de Download iniciado!')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-lg shadow transition text-center w-full sm:w-auto">
+                    Baixar Sistema 📥
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-gray-200 text-center py-4 text-gray-500 text-sm">
+        &copy; 2026 LCDPR-Pro. Todos os direitos reservados.
+    </footer>
+
+    <script>
+        function logout() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
