@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel Administrativo - LCDPR-Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- Navbar -->
+    <header class="bg-gray-900 text-white shadow-md">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wide">LCDPR-Pro <span class="text-emerald-400 text-sm font-normal">| Painel do Administrador</span></h1>
+            <a href="index.html" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-sm transition">Ir para o Site</a>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="container mx-auto px-6 py-10 max-w-5xl">
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Gerenciar Cadastros</h2>
+                    <p class="text-gray-500 text-sm">Aprove ou remova os usuários que solicitaram acesso aos testes.</p>
+                </div>
+                <button onclick="loadUsers()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition shadow">Atualizar Lista</button>
+            </div>
+
+            <!-- Tabela de Usuários -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase">
+                            <th class="p-4">ID</th>
+                            <th class="p-4">E-mail</th>
+                            <th class="p-4">Data de Cadastro</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table-body" class="divide-y divide-gray-100 text-sm">
+                        <!-- Preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function loadUsers() {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Carregando usuários...</td></tr>`;
+
+            try {
+                const res = await fetch('/api/admin/users');
+                const users = await res.json();
+
+                if (users.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Nenhum usuário cadastrado ainda.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                users.forEach(user => {
+                    const date = new Date(user.created_at).toLocaleDateString('pt-BR');
+                    const statusBadge = user.is_approved 
+                        ? `<span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold">Aprovado</span>`
+                        : `<span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">Pendente</span>`;
+
+                    const actionButton = user.is_approved 
+                        ? `<span class="text-gray-400 text-xs font-semibold">Liberado</span>`
+                        : `<button onclick="approveUser(${user.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold transition shadow">Aprovar</button>`;
+
+                    const deleteButton = `<button onclick="deleteUser(${user.id})" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded text-xs font-bold transition ml-2">Excluir</button>`;
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="p-4 text-gray-500">#${user.id}</td>
+                            <td class="p-4 font-medium text-gray-800">${user.email}</td>
+                            <td class="p-4 text-gray-500">${date}</td>
+                            <td class="p-4">${statusBadge}</td>
+                            <td class="p-4 text-center whitespace-nowrap">${actionButton} ${deleteButton}</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500">Erro ao carregar dados do servidor.</td></tr>`;
+            }
+        }
+
+        async function approveUser(userId) {
+            const res = await fetch('/api/admin/approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                loadUsers();
+            } else {
+                alert('Erro ao aprovar usuário.');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Deseja realmente excluir este usuário?')) return;
+            const res = await fetch(`/api/admin/user/${userId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                loadUsers();
+            } else {
+                alert('Erro ao excluir usuário.');
+            }
+        }
+
+        // Carregar lista ao abrir a página
+        loadUsers();
+    </script>
+</body>
+</html>

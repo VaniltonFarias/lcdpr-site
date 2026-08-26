@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCDPR-Pro | Livro Caixa Digital do Produtor Rural</title>
+    <meta name="description" content="Sistema completo de Livro Caixa Digital do Produtor Rural. Multi-produtor, importação de XML, relatórios e geração do arquivo LCDPR para a Receita Federal.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        .hero-pattern {
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(5, 150, 105, 0.12) 0%, transparent 40%);
+        }
+        .card-feature:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -12px rgba(5, 150, 105, 0.25);
+        }
+        .card-feature { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-2 font-extrabold text-brand-800 text-xl">
+                <span class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center">
+                    <i class="fa-solid fa-wheat-awn text-sm"></i>
+                </span>
+                LCDPR-Pro
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+                <a href="#recursos" class="hover:text-brand-700">Recursos</a>
+                <a href="#para-quem" class="hover:text-brand-700">Para quem</a>
+                <a href="#lcdpr" class="hover:text-brand-700">Arquivo LCDPR</a>
+                <a href="#acesso" class="hover:text-brand-700">Acesso</a>
+            </div>
+            <a href="#acesso" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold px-4 py-2 rounded-lg shadow transition">
+                Entrar no sistema
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="pt-28 pb-16 md:pt-32 md:pb-24 hero-pattern bg-gradient-to-br from-brand-900 via-brand-800 to-slate-900 text-white relative overflow-hidden">
+        <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center relative z-10">
+            <div>
+                <span class="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-brand-100 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                    <i class="fa-solid fa-check-circle text-brand-400"></i>
+                    Pronto para a entrega à RFB
+                </span>
+                <h1 class="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight">
+                    Livro Caixa Digital do<br>
+                    <span class="text-brand-300">Produtor Rural</span>
+                </h1>
+                <p class="mt-5 text-brand-100/90 text-lg leading-relaxed max-w-lg">
+                    Controle receitas e despesas de múltiplos produtores, importe XML de NF-e,
+                    gere relatórios e o arquivo LCDPR completo para a Receita Federal — tudo em um só lugar.
+                </p>
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <a href="#acesso" class="bg-brand-500 hover:bg-brand-400 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition inline-flex items-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        Acessar agora
+                    </a>
+                    <a href="#recursos" class="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold px-6 py-3 rounded-xl transition inline-flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i>
+                        Ver recursos
+                    </a>
+                </div>
+                <div class="mt-10 flex flex-wrap gap-6 text-sm text-brand-200">
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-users text-brand-400"></i> Multi-produtor</div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-file-code text-brand-400"></i> Importação XML</div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-file-export text-brand-400"></i> Arquivo LCDPR</div>
+                </div>
+            </div>
+
+            <!-- Mock dashboard visual -->
+            <div class="relative hidden md:block">
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-5 shadow-2xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-400"></span>
+                        <span class="ml-2 text-xs text-white/60">Painel · Lançamentos</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div class="bg-emerald-500/20 rounded-xl p-3 border border-emerald-400/30">
+                            <p class="text-[10px] uppercase text-emerald-200">Entradas</p>
+                            <p class="text-lg font-bold text-white">R$ 128.450</p>
+                        </div>
+                        <div class="bg-rose-500/20 rounded-xl p-3 border border-rose-400/30">
+                            <p class="text-[10px] uppercase text-rose-200">Saídas</p>
+                            <p class="text-lg font-bold text-white">R$ 74.210</p>
+                        </div>
+                        <div class="bg-sky-500/20 rounded-xl p-3 border border-sky-400/30">
+                            <p class="text-[10px] uppercase text-sky-200">Saldo</p>
+                            <p class="text-lg font-bold text-white">R$ 54.240</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/40 rounded-xl p-3 space-y-2">
+                        <div class="flex justify-between text-xs text-white/80 border-b border-white/10 pb-2">
+                            <span>20/08 · Venda de grãos</span>
+                            <span class="text-emerald-300 font-semibold">+ 5.000,00</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-white/80 border-b border-white/10 pb-2">
+                            <span>18/08 · Insumos agrícolas</span>
+                            <span class="text-rose-300 font-semibold">- 2.350,00</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-white/80">
+                            <span>15/08 · Frete</span>
+                            <span class="text-rose-300 font-semibold">- 890,00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -bottom-4 -left-4 bg-white text-slate-800 rounded-xl shadow-xl px-4 py-3 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Arquivo LCDPR</p>
+                        <p class="text-sm font-bold">Gerado com sucesso</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- RECURSOS -->
+    <section id="recursos" class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center max-w-2xl mx-auto mb-14">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Tudo que o produtor e o escritório precisam</h2>
+                <p class="mt-3 text-slate-600">Do lançamento diário até a entrega do arquivo à Receita Federal, com foco em praticidade e conformidade.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Multi-produtor</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Gerencie vários produtores rurais na mesma instalação. Ideal para escritórios contábeis e consultorias do agronegócio.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-file-code"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Importação de XML</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Importe NF-e automaticamente: valida destinatário, cadastra participante e preenche data, documento, valor e histórico.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-money-check-dollar"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Lançamentos inteligentes</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Plano de contas, imóveis, contas bancárias, forma de pagamento e alteração em lote. Tudo alinhado ao layout LCDPR.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Relatórios personalizados</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Visão por período, entradas, saídas, saldo, médias e ranking de receitas e despesas para análise rápida.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-file-export"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Arquivo LCDPR completo</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Gera o arquivo no padrão exigido pela Receita Federal para entrega do Livro Caixa Digital do Produtor Rural.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Controle e conformidade</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Validação de documento duplicado, rateio por produtor, imóveis com IE e histórico comercial padronizado.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- PARA QUEM -->
+    <section id="para-quem" class="py-20 bg-slate-100">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Feito para o campo e para o escritório</h2>
+                <p class="mt-3 text-slate-600 max-w-2xl mx-auto">Seja produtor rural ou contador especializado em agronegócio, o fluxo se adapta ao seu dia a dia.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 flex flex-col">
+                    <div class="h-44 bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center relative">
+                        <i class="fa-solid fa-tractor text-6xl text-white/90"></i>
+                        <div class="absolute bottom-3 left-4 bg-black/30 text-white text-xs px-2 py-1 rounded">Produtor rural</div>
+                    </div>
+                    <div class="p-6 flex-1">
+                        <h3 class="text-xl font-bold text-slate-900">Para o produtor</h3>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-600">
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Lançamentos simples de receitas e despesas</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Importação de notas fiscais (XML)</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Acompanhamento do saldo do período</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Geração do LCDPR sem complicação</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 flex flex-col">
+                    <div class="h-44 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center relative">
+                        <i class="fa-solid fa-building-columns text-6xl text-white/90"></i>
+                        <div class="absolute bottom-3 left-4 bg-black/30 text-white text-xs px-2 py-1 rounded">Escritório contábil</div>
+                    </div>
+                    <div class="p-6 flex-1">
+                        <h3 class="text-xl font-bold text-slate-900">Para o escritório</h3>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-600">
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Vários produtores no mesmo ambiente</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Alteração de lançamentos em lote</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Cadastro rápido de participantes e plano de contas</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Relatórios e arquivo prontos para a RFB</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LCDPR / RFB -->
+    <section id="lcdpr" class="py-20 bg-brand-900 text-white">
+        <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <span class="text-brand-300 text-sm font-semibold uppercase tracking-wider">Entrega à Receita Federal</span>
+                <h2 class="mt-2 text-3xl md:text-4xl font-extrabold leading-tight">Geração completa do arquivo LCDPR</h2>
+                <p class="mt-4 text-brand-100/90 leading-relaxed">
+                    O sistema monta o arquivo no layout oficial do Livro Caixa Digital do Produtor Rural,
+                    com os registros exigidos para a entrega digital à RFB — reduzindo retrabalho e risco de inconsistência.
+                </p>
+                <ul class="mt-6 space-y-3 text-sm">
+                    <li class="flex items-start gap-3">
+                        <span class="mt-0.5 w-6 h-6 rounded-full bg-brand-500/30 flex items-center justify-center text-brand-300"><i class="fa-solid fa-1 text-xs"></i></span>
+                        Lançamentos organizados por imóvel, participante e plano de contas
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-0.5 w-6 h-6 rounded-full bg-brand-500/30 flex items-center justify-center text-brand-300"><i class="fa-solid fa-2 text-xs"></i></span>
+                        Validação de documentos e fluxo de caixa (entrada/saída)
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-0.5 w-6 h-6 rounded-full bg-brand-500/30 flex items-center justify-center text-brand-300"><i class="fa-solid fa-3 text-xs"></i></span>
+                        Exportação do arquivo pronto para envio
+                    </li>
+                </ul>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-xl bg-brand-500/20 text-brand-300 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold">Arquivo LCDPR</p>
+                        <p class="text-xs text-brand-200">Layout oficial · RFB</p>
+                    </div>
+                </div>
+                <div class="space-y-2 font-mono text-xs text-brand-100/80 bg-black/20 rounded-xl p-4">
+                    <p>0000|LCDPR|...|PRODUTOR|...</p>
+                    <p>0010|...|IMÓVEL RURAL|IE|...</p>
+                    <p>0030|...|PARTICIPANTE|CPF/CNPJ|...</p>
+                    <p class="text-brand-300">Q100|DATA|CONTA|DOC|VALOR|E/S|...</p>
+                    <p class="text-brand-300">Q100|DATA|CONTA|DOC|VALOR|E/S|...</p>
+                    <p>9999|...</p>
+                </div>
+                <p class="mt-4 text-xs text-brand-200/80">Representação ilustrativa da estrutura do arquivo gerado pelo sistema.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- NÚMEROS / DESTAQUES -->
+    <section class="py-16 bg-white border-y border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+                <p class="text-3xl font-extrabold text-brand-700">XML</p>
+                <p class="text-sm text-slate-500 mt-1">Importação de NF-e</p>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold text-brand-700">N</p>
+                <p class="text-sm text-slate-500 mt-1">Produtores por instalação</p>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold text-brand-700">100%</p>
+                <p class="text-sm text-slate-500 mt-1">Foco no layout LCDPR</p>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold text-brand-700">RFB</p>
+                <p class="text-sm text-slate-500 mt-1">Arquivo para entrega</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ACESSO (Login / Cadastro) -->
+    <section id="acesso" class="py-20 bg-gradient-to-br from-slate-100 to-brand-50">
+        <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-start">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-900">Comece a usar o LCDPR-Pro</h2>
+                <p class="mt-3 text-slate-600 leading-relaxed">
+                    Entre com sua conta ou cadastre-se para acessar a plataforma de testes e downloads.
+                    Organize o livro caixa, importe XMLs e gere o arquivo para a Receita Federal.
+                </p>
+                <ul class="mt-6 space-y-3 text-sm text-slate-700">
+                    <li class="flex gap-2 items-center"><i class="fa-solid fa-circle-check text-brand-600"></i> Ambiente multi-produtor</li>
+                    <li class="flex gap-2 items-center"><i class="fa-solid fa-circle-check text-brand-600"></i> Importação de XML de NF-e</li>
+                    <li class="flex gap-2 items-center"><i class="fa-solid fa-circle-check text-brand-600"></i> Relatórios e painel financeiro</li>
+                    <li class="flex gap-2 items-center"><i class="fa-solid fa-circle-check text-brand-600"></i> Geração do arquivo LCDPR</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 md:p-8">
+                <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
+                    <button type="button" id="tab-login" onclick="switchTab('login')" class="flex-1 py-2.5 text-sm font-bold rounded-lg transition bg-white text-brand-800 shadow">Entrar</button>
+                    <button type="button" id="tab-register" onclick="switchTab('register')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 hover:text-slate-800">Cadastrar</button>
+                </div>
+
+                <div id="form-login" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">E-mail</label>
+                        <input type="email" id="login-email" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:outline-none" placeholder="seu@email.com" autocomplete="username">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Senha</label>
+                        <input type="password" id="login-password" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:outline-none" placeholder="••••••••" autocomplete="current-password">
+                    </div>
+                    <button type="button" onclick="handleLogin()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg shadow-lg transition">
+                        Acessar sistema
+                    </button>
+                </div>
+
+                <div id="form-register" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">E-mail</label>
+                        <input type="email" id="reg-email" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:outline-none" placeholder="seu@email.com" autocomplete="email">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Definir senha</label>
+                        <input type="password" id="reg-password" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:outline-none" placeholder="••••••••" autocomplete="new-password">
+                    </div>
+                    <button type="button" onclick="handleRegister()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg shadow-lg transition">
+                        Criar conta
+                    </button>
+                </div>
+
+                <div id="msg" class="mt-4 text-center text-sm font-medium min-h-[1.25rem]"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 py-10">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2 text-white font-bold">
+                <span class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-sm"><i class="fa-solid fa-wheat-awn"></i></span>
+                LCDPR-Pro
+            </div>
+            <p class="text-sm text-center">Livro Caixa Digital do Produtor Rural · Multi-produtor · XML · Relatórios · Arquivo LCDPR</p>
+            <p class="text-xs">© <span id="ano"></span> LCDPR-Pro</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('ano').textContent = new Date().getFullYear();
+
+        function switchTab(tab) {
+            const loginTab = document.getElementById('tab-login');
+            const regTab = document.getElementById('tab-register');
+            const loginForm = document.getElementById('form-login');
+            const regForm = document.getElementById('form-register');
+            const msg = document.getElementById('msg');
+            msg.innerText = '';
+
+            if (tab === 'login') {
+                loginTab.className = "flex-1 py-2.5 text-sm font-bold rounded-lg transition bg-white text-brand-800 shadow";
+                regTab.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+            } else {
+                regTab.className = "flex-1 py-2.5 text-sm font-bold rounded-lg transition bg-white text-brand-800 shadow";
+                loginTab.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+
+        async function handleRegister() {
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const msg = document.getElementById('msg');
+            if (!email || !password) {
+                msg.style.color = '#dc2626';
+                msg.innerText = 'Preencha e-mail e senha.';
+                return;
+            }
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                msg.style.color = data.success ? '#059669' : '#dc2626';
+                msg.innerText = data.message || (data.success ? 'Conta criada!' : 'Não foi possível cadastrar.');
+                if (data.success) setTimeout(() => switchTab('login'), 2000);
+            } catch (err) {
+                msg.style.color = '#dc2626';
+                msg.innerText = 'Erro ao conectar ao servidor.';
+            }
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const msg = document.getElementById('msg');
+            if (!email || !password) {
+                msg.style.color = '#dc2626';
+                msg.innerText = 'Preencha e-mail e senha.';
+                return;
+            }
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.style.color = '#059669';
+                    msg.innerText = 'Login autorizado! Redirecionando...';
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                } else {
+                    msg.style.color = '#dc2626';
+                    msg.innerText = data.message || 'Credenciais inválidas.';
+                }
+            } catch (err) {
+                msg.style.color = '#dc2626';
+                msg.innerText = 'Erro ao conectar ao servidor.';
+            }
+        }
+    </script>
+</body>
+</html>
