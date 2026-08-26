@@ -494,9 +494,12 @@
                 msg.innerText = 'Login autorizado! Redirecionando...';
 
                 setTimeout(() => {
-                    window.location.href = '/dashboard.html';
+                    if (data.isAdmin) {
+                        window.location.href = '/admin.html';
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
                 }, 500);
-
             } catch (err) {
                 console.error('Erro no login:', err);
 
