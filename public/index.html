@@ -1,4 +1,681 @@
+Skip to main content
+
+    Ctrl+K
+    Ctrl+J
+
+a lista de lancamentos esta desalinhada
+
+Problema identificado e corrigido.
+
+A coluna do checkbox (usada no modo lote) era ocultada com display: none nas linhas (<td>), mas o cabeçalho (<th>) continuava visível. Com isso, as células se deslocavam uma coluna para a esquerda e os dados não batiam com os títulos.
+O que foi alterado:
+
+    lancamentos.html
+        O <th> do checkbox agora tem a classe coluna-checkbox e inicia com display: none.
+    lancamentos.js
+        alternarModoLote() passa a mostrar/ocultar todas as células com a classe .coluna-checkbox (cabeçalho + linhas), mantendo o alinhamento.
+        cancelarModoLote() agora desativa o modo lote corretamente (em vez de só limpar a seleção).
+
+Com isso, a tabela fica alinhada normalmente e a coluna de checkbox só aparece quando o modo lote está ativo.
+
+me de o codigo alterado pra eu corrigir
+
+Segue o código alterado para você aplicar:
+1. lancamentos.html — cabeçalho da tabela
+
+Troque esta linha:
+
+<th width="40"><input type="checkbox" id="selecionar-todos" onclick="alternarSelecionarTodos(this)"></th>
+
+Por esta:
+
+<th width="40" class="coluna-checkbox" style="display: none;"><input type="checkbox" id="selecionar-todos" onclick="alternarSelecionarTodos(this)"></th>
+
+2. lancamentos.js — função alternarModoLote
+
+function alternarModoLote() {
+    modoLoteAtivo = !modoLoteAtivo;
+    const btn = document.getElementById('btn-ativar-lote');
+    // Exibe/oculta a coluna de checkbox no cabeçalho e nas linhas (mantém alinhamento)
+    document.querySelectorAll('.coluna-checkbox').forEach(el => {
+        el.style.display = modoLoteAtivo ? '' : 'none';
+    });
+    if (modoLoteAtivo) {
+        if (btn) {
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-secondary');
+            btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancelar Lote';
+        }
+        alert("Modo de lote ativado! Marque os lançamentos e informe os campos na barra inferior.");
+    } else {
+        if (btn) {
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-warning');
+            btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Alterar Lançamentos em Lote';
+        }
+        document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = false);
+        const barra = document.getElementById('barra-acoes-lote');
+        if (barra) barra.style.display = 'none';
+        const selecionarTodos = document.getElementById('selecionar-todos');
+        if (selecionarTodos) selecionarTodos.checked = false;
+    }
+}
+
+3. lancamentos.js — função cancelarModoLote
+
+function cancelarModoLote() {
+    if (modoLoteAtivo) {
+        alternarModoLote(); // desativa o modo e oculta a coluna de checkbox
+        return;
+    }
+    const barraLote = document.getElementById('barra-acoes-lote');
+    if (barraLote) barraLote.style.display = 'none';
+    const selecionarTodos = document.getElementById('selecionar-todos');
+    if (selecionarTodos) selecionarTodos.checked = false;
+    document.querySelectorAll('#lancamentos-tbody input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        cb.closest('tr')?.classList.remove('selected');
+    });
+}
+
+Com isso a coluna de checkbox some/aparece junto com o cabeçalho e a tabela deixa de desalinhada.
+
+eu preciso do checbox pois ele e usado pra alterar lancamentos em lote
+
+O checkbox continua existindo e funciona normalmente para alteração em lote.
+
+O que a correção faz é só isto:
+
+    Modo lote desativado → coluna do checkbox oculta (cabeçalho + linhas) → tabela alinhada
+    Modo lote ativado (botão “Alterar Lançamentos em Lote”) → coluna do checkbox aparece no cabeçalho e em todas as linhas → você marca os lançamentos e usa a barra de ações em lote
+
+Ou seja: o recurso de lote permanece intacto. A coluna só some quando não está em uso, para não desalinhар a tabela.
+
+Se você quiser que o checkbox fique sempre visível (mesmo fora do modo lote), posso ajustar o código para isso. É só dizer.
+
+preciso marcar o checbox quando clico abre a funcao alterar por lote...
+
+Pronto. Agora o comportamento é:
+
+    Checkbox sempre visível na tabela (sem desalinhamento)
+    Ao marcar qualquer checkbox → a barra de “Alterar em Lote” abre automaticamente
+    Botão Cancelar (na barra) ou o botão da toolbar limpa a seleção e fecha a barra
+
+Código para aplicar no lancamentos.js
+
+1. Substitua as funções de lote (por volta da linha 308):
+
+let modoLoteAtivo = false;
+
+function alternarModoLote() {
+    // Limpa seleção e fecha a barra de ações em lote
+    document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = false);
+    const selecionarTodos = document.getElementById('selecionar-todos');
+    if (selecionarTodos) selecionarTodos.checked = false;
+    const barra = document.getElementById('barra-acoes-lote');
+    if (barra) barra.style.display = 'none';
+    modoLoteAtivo = false;
+}
+
+function alternarSelecionarTodos(master) {
+    document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = master.checked);
+    atualizarBarraLote();
+}
+
+function atualizarBarraLote() {
+    const selecionados = document.querySelectorAll('.checkbox-lancamento:checked');
+    const barra = document.getElementById('barra-acoes-lote');
+    const qtdEl = document.getElementById('qtd-selecionados');
+    if (selecionados.length > 0) {
+        if (barra) barra.style.display = 'flex';
+        if (qtdEl) qtdEl.textContent = selecionados.length;
+        modoLoteAtivo = true;
+    } else {
+        if (barra) barra.style.display = 'none';
+        modoLoteAtivo = false;
+        const selecionarTodos = document.getElementById('selecionar-todos');
+        if (selecionarTodos) selecionarTodos.checked = false;
+    }
+}
+
+2. Na função montarLinha, deixe o checkbox sempre visível (sem display: none):
+
+tr.innerHTML = `
+        <td class="coluna-checkbox" style="text-align: center;">
+            <input type="checkbox" class="checkbox-lancamento" data-id="${item.id}" onchange="atualizarBarraLote()">
+        </td>
+        <td style="text-align: center;">${formatarDataBR(item.data_pagamento)}</td>
+        <td style="text-align: center;">${item.cod_conta_txt || ""}</td>
+        <td>${item.num_documento || ""}</td>
+        <td>${item.nome_participante || ""}</td>
+        <td>${item.descricao_conta || ""}</td>
+        <td>${item.historico_comercial || ""}</td>
+        <td style="text-align: right; color: green; font-weight: 500;">${entrada ? formatarValor(valor) : "-"}</td>
+        <td style="text-align: right; color: red; font-weight: 500;">${!entrada ? formatarValor(valor) : "-"}</td>
+        <td style="text-align: center; white-space: nowrap;">
+            <button class="btn-editar" data-id="${item.id}" title="Editar"><i class="fas fa-edit"></i></button>
+            <button class="btn-duplicar" data-id="${item.id}" title="Duplicar"><i class="fas fa-copy"></i></button>
+            <button class="btn-excluir" data-id="${item.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td>
+    `;
+
+3. Substitua o final de executarAtualizacaoEmLote e a função cancelarModoLote:
+
+if (resposta.status === 200) {
+        alert(resposta.dados?.message || "Lançamentos atualizados com sucesso!");
+        cancelarModoLote();
+        await carregarGrid();
+    } else {
+        alert(resposta.dados?.message || "Erro ao atualizar em lote.");
+    }
+}
+
+function cancelarModoLote() {
+    document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = false);
+    const selecionarTodos = document.getElementById('selecionar-todos');
+    if (selecionarTodos) selecionarTodos.checked = false;
+    const barraLote = document.getElementById('barra-acoes-lote');
+    if (barraLote) barraLote.style.display = 'none';
+    modoLoteAtivo = false;
+}
+
+No HTML, o <th> do checkbox pode permanecer como está (sempre visível). Com isso, marcar o checkbox já abre a função de alteração em lote.
+
+o checbox fica no lugar da conta.. e ai desalinha as outras colunas
+Alta procura
+Grok está sob alto uso agora. Por favor, tente novamente mais tarde ou atualize seu plano para obter prioridade de acesso
+
+o checbox fica no lugar da conta.. e ai desalinha as outras colunas
+
+O desalinhamento acontece porque a linha tem 10 colunas (checkbox + dados) e o cabeçalho está com 9 (sem a coluna do checkbox visível), ou o checkbox está sendo ocultado de forma inconsistente.
+
+Aplique estas 3 alterações:
+1. lancamentos.html — cabeçalho (sempre com a coluna do checkbox)
+
+<thead>
+    <tr>
+        <th width="40" class="coluna-checkbox" style="text-align: center;">
+            <input type="checkbox" id="selecionar-todos" onclick="alternarSelecionarTodos(this)">
+        </th>
+        <th width="90">Data</th>
+        <th width="70">Conta</th>
+        <th width="90">Documento</th>
+        <th width="260">Participante</th>
+        <th width="220">Plano de Contas</th>
+        <th>Histórico</th>
+        <th width="120" class="text-right">Entrada</th>
+        <th width="120" class="text-right">Saída</th>
+        <th width="170" class="text-center">Ações</th>
+    </tr>
+</thead>
+
+2. lancamentos.js — montarLinha (checkbox sempre visível, sem display: none)
+
+function montarLinha(item) {
+    const tbody = document.getElementById("lancamentos-tbody");
+    const entrada = item.fluxo === "E";
+    const valor = Number(item.valor_rateado_produtor ?? item.valor_total_documento ?? 0);
+    const tr = document.createElement("tr");
+    tr.dataset.id = item.id;
+    
+    tr.innerHTML = `
+        <td class="coluna-checkbox" style="text-align: center;">
+            <input type="checkbox" class="checkbox-lancamento" data-id="${item.id}" onchange="atualizarBarraLote()">
+        </td>
+        <td style="text-align: center;">${formatarDataBR(item.data_pagamento)}</td>
+        <td style="text-align: center;">${item.cod_conta_txt || ""}</td>
+        <td>${item.num_documento || ""}</td>
+        <td>${item.nome_participante || ""}</td>
+        <td>${item.descricao_conta || ""}</td>
+        <td>${item.historico_comercial || ""}</td>
+        <td style="text-align: right; color: green; font-weight: 500;">${entrada ? formatarValor(valor) : "-"}</td>
+        <td style="text-align: right; color: red; font-weight: 500;">${!entrada ? formatarValor(valor) : "-"}</td>
+        <td style="text-align: center; white-space: nowrap;">
+            <button class="btn-editar" data-id="${item.id}" title="Editar"><i class="fas fa-edit"></i></button>
+            <button class="btn-duplicar" data-id="${item.id}" title="Duplicar"><i class="fas fa-copy"></i></button>
+            <button class="btn-excluir" data-id="${item.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+}
+
+3. lancamentos.js — funções de lote (marcar checkbox abre a barra)
+
+let modoLoteAtivo = false;
+
+function alternarModoLote() {
+    // Limpa seleção e fecha a barra
+    document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = false);
+    const selecionarTodos = document.getElementById('selecionar-todos');
+    if (selecionarTodos) selecionarTodos.checked = false;
+    const barra = document.getElementById('barra-acoes-lote');
+    if (barra) barra.style.display = 'none';
+    modoLoteAtivo = false;
+}
+
+function alternarSelecionarTodos(master) {
+    document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = master.checked);
+    atualizarBarraLote();
+}
+
+function atualizarBarraLote() {
+    const selecionados = document.querySelectorAll('.checkbox-lancamento:checked');
+    const barra = document.getElementById('barra-acoes-lote');
+    const qtdEl = document.getElementById('qtd-selecionados');
+    if (selecionados.length > 0) {
+        if (barra) barra.style.display = 'flex';
+        if (qtdEl) qtdEl.textContent = selecionados.length;
+        modoLoteAtivo = true;
+    } else {
+        if (barra) barra.style.display = 'none';
+        modoLoteAtivo = false;
+        const selecionarTodos = document.getElementById('selecionar-todos');
+        if (selecionarTodos) selecionarTodos.checked = false;
+    }
+}
+
+function cancelarModoLote() {
+    document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = false);
+    const selecionarTodos = document.getElementById('selecionar-todos');
+    if (selecionarTodos) selecionarTodos.checked = false;
+    const barraLote = document.getElementById('barra-acoes-lote');
+    if (barraLote) barraLote.style.display = 'none';
+    modoLoteAtivo = false;
+}
+
+E no final de executarAtualizacaoEmLote, troque o trecho de sucesso por:
+
+if (resposta.status === 200) {
+        alert(resposta.dados?.message || "Lançamentos atualizados com sucesso!");
+        cancelarModoLote();
+        await carregarGrid();
+    } else {
+        alert(resposta.dados?.message || "Erro ao atualizar em lote.");
+    }
+
+Resumo:
+
+    Cabeçalho e linhas passam a ter a mesma quantidade de colunas
+    Checkbox sempre visível
+    Ao marcar → abre a barra de alteração em lote
+
+Se ainda desalinhар, confira no CSS se existe alguma regra tipo th:first-child { display: none } ou .coluna-checkbox { display: none } que esteja escondendo só o cabeçalho.
+
+na alteracao coletiva, quando o usuario escolher alterar a forma de pagamento, e for selecionada a conta bancaria, tem que abrir o campo para que a conta seja selecionada, nesse cenario atual nao esta acontecendo isso
+
+O problema era que a função verificarFormaPagamentoLote() era chamada no HTML, mas não existia no JavaScript.
+Código para adicionar no lancamentos.js
+
+Coloque esta função (pode ser logo após popularSelectsLote):
+
+/**
+ * Exibe/oculta o select de conta bancária na barra de lote
+ * quando a forma de pagamento for "Conta Bancária" (valor 2).
+ */
+function verificarFormaPagamentoLote() {
+    const forma = document.getElementById('lote-forma_pagamento');
+    const selectConta = document.getElementById('lote-conta_id');
+    if (!forma || !selectConta) return;
+
+    if (forma.value === '2') {
+        selectConta.style.display = '';
+        // Garante que as opções estejam carregadas
+        if (selectConta.options.length <= 1 && typeof popularSelectsLote === 'function') {
+            popularSelectsLote();
+        }
+    } else {
+        selectConta.style.display = 'none';
+        selectConta.value = '';
+    }
+}
+
+Extra: validação e limpeza ao cancelar
+
+No executarAtualizacaoEmLote, depois da verificação de campos vazios, adicione:
+
+if (forma_pagamento === "2" && !conta_id) {
+        alert("Selecione a conta bancária.");
+        document.getElementById('lote-conta_id')?.focus();
+        return;
+    }
+
+E atualize o cancelarModoLote para resetar os campos:
+
+function cancelarModoLote() {
+    document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = false);
+    const selecionarTodos = document.getElementById('selecionar-todos');
+    if (selecionarTodos) selecionarTodos.checked = false;
+    const barraLote = document.getElementById('barra-acoes-lote');
+    if (barraLote) barraLote.style.display = 'none';
+    // Reseta os campos da barra de lote
+    const loteForma = document.getElementById('lote-forma_pagamento');
+    if (loteForma) loteForma.value = '';
+    const loteConta = document.getElementById('lote-conta_id');
+    if (loteConta) {
+        loteConta.value = '';
+        loteConta.style.display = 'none';
+    }
+    const loteImovel = document.getElementById('lote-imovel_id');
+    if (loteImovel) loteImovel.value = '';
+    const lotePlano = document.getElementById('lote-plano_contas_id');
+    if (lotePlano) lotePlano.value = '';
+    modoLoteAtivo = false;
+}
+
+Com isso, ao escolher Conta Bancária na alteração em lote, o campo de seleção da conta aparece.
+
+lancamentos.js:439 Uncaught SyntaxError: Illegal return statement
+
+O erro Illegal return statement acontece quando um return fica fora de uma função. Isso costuma ocorrer ao colar o trecho de validação no lugar errado.
+
+Abaixo está o bloco completo e correto para substituir no lancamentos.js (da função popularSelectsLote até cancelarModoLote):
+
+function popularSelectsLote() {
+    const selImovel = document.getElementById('lote-imovel_id');
+    if (selImovel && state.auxiliares.imoveis) {
+        selImovel.innerHTML = '<option value="">Manter Imóvel Atual...</option>';
+        state.auxiliares.imoveis.forEach(item => {
+            selImovel.appendChild(new Option(`${item.cod_imovel} - ${item.nome_imovel}`, item.id));
+        });
+    }
+    const selPlano = document.getElementById('lote-plano_contas_id');
+    if (selPlano && state.auxiliares.planoContas) {
+        selPlano.innerHTML = '<option value="">Manter Plano Atual...</option>';
+        state.auxiliares.planoContas.forEach(item => {
+            selPlano.appendChild(new Option(`${item.cod_conta} - ${item.descricao}`, item.id));
+        });
+    }
+    const selConta = document.getElementById('lote-conta_id');
+    if (selConta && state.auxiliares.contasBancarias) {
+        selConta.innerHTML = '<option value="">Selecione a conta...</option>';
+        state.auxiliares.contasBancarias.forEach(item => {
+            const opt = new Option(`${item.cod_conta} - ${item.nome_banco}`, item.id);
+            opt.dataset.codtxt = item.cod_conta;
+            selConta.appendChild(opt);
+        });
+    }
+}
+
+/**
+ * Exibe/oculta o select de conta bancária na barra de lote
+ * quando a forma de pagamento for "Conta Bancária" (valor 2).
+ */
+function verificarFormaPagamentoLote() {
+    const forma = document.getElementById('lote-forma_pagamento');
+    const selectConta = document.getElementById('lote-conta_id');
+    if (!forma || !selectConta) return;
+
+    if (forma.value === '2') {
+        selectConta.style.display = '';
+        if (selectConta.options.length <= 1 && typeof popularSelectsLote === 'function') {
+            popularSelectsLote();
+        }
+    } else {
+        selectConta.style.display = 'none';
+        selectConta.value = '';
+    }
+}
+
+async function executarAtualizacaoEmLote() {
+    const checkboxes = document.querySelectorAll('.checkbox-lancamento:checked');
+    const ids = Array.from(checkboxes).map(cb => Number(cb.dataset.id));
+    if (ids.length === 0) { alert("Selecione ao menos um lançamento."); return; }
+
+    const imovel_id = document.getElementById('lote-imovel_id')?.value;
+    const plano_contas_id = document.getElementById('lote-plano_contas_id')?.value;
+    const forma_pagamento = document.getElementById('lote-forma_pagamento')?.value;
+    const conta_id = document.getElementById('lote-conta_id')?.value;
+
+    let cod_conta_txt = undefined;
+    if (forma_pagamento === "1") cod_conta_txt = "000";
+    else if (forma_pagamento === "3") cod_conta_txt = "999";
+    else if (forma_pagamento === "2") {
+        const selectConta = document.getElementById('lote-conta_id');
+        const opt = selectConta?.options[selectConta.selectedIndex];
+        cod_conta_txt = opt ? opt.dataset.codtxt : undefined;
+    }
+
+    const payload = {
+        ids,
+        imovel_id: imovel_id ? Number(imovel_id) : undefined,
+        plano_contas_id: plano_contas_id ? Number(plano_contas_id) : undefined,
+        conta_id: conta_id ? Number(conta_id) : (forma_pagamento ? null : undefined),
+        cod_conta_txt
+    };
+
+    if (!payload.imovel_id && !payload.plano_contas_id && !forma_pagamento) {
+        alert("Selecione ao menos um campo para alterar em lote.");
+        return;
+    }
+
+    if (forma_pagamento === "2" && !conta_id) {
+        alert("Selecione a conta bancária.");
+        document.getElementById('lote-conta_id')?.focus();
+        return;
+    }
+
+    if (!confirm(`Deseja realmente atualizar ${ids.length} lançamentos selecionados?`)) return;
+
+    const resposta = await fetchApi('/api/lancamentos/lote/atualizar', {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+    });
+
+    if (resposta.status === 200) {
+        alert(resposta.dados?.message || "Lançamentos atualizados com sucesso!");
+        cancelarModoLote();
+        await carregarGrid();
+    } else {
+        alert(resposta.dados?.message || "Erro ao atualizar em lote.");
+    }
+}
+
+function cancelarModoLote() {
+    document.querySelectorAll('.checkbox-lancamento').forEach(cb => cb.checked = false);
+    const selecionarTodos = document.getElementById('selecionar-todos');
+    if (selecionarTodos) selecionarTodos.checked = false;
+    const barraLote = document.getElementById('barra-acoes-lote');
+    if (barraLote) barraLote.style.display = 'none';
+    const loteForma = document.getElementById('lote-forma_pagamento');
+    if (loteForma) loteForma.value = '';
+    const loteConta = document.getElementById('lote-conta_id');
+    if (loteConta) {
+        loteConta.value = '';
+        loteConta.style.display = 'none';
+    }
+    const loteImovel = document.getElementById('lote-imovel_id');
+    if (loteImovel) loteImovel.value = '';
+    const lotePlano = document.getElementById('lote-plano_contas_id');
+    if (lotePlano) lotePlano.value = '';
+    modoLoteAtivo = false;
+}
+
+Importante: substitua o bloco inteiro (não cole só o if com return solto no arquivo). Depois recarregue a página.
+
+Com isso:
+
+    Ao escolher Conta Bancária, o select da conta aparece
+    Se salvar sem escolher a conta, mostra o alerta
+    Ao cancelar, os campos da barra são limpos
+
+async function executarAtualizacaoEmLote() {
+    const checkboxes = document.querySelectorAll('.checkbox-lancamento:checked');
+    const ids = Array.from(checkboxes).map(cb => Number(cb.dataset.id));
+    if (ids.length === 0) { alert("Selecione ao menos um lançamento."); return; }
+
+    const imovel_id = document.getElementById('lote-imovel_id')?.value;
+    const plano_contas_id = document.getElementById('lote-plano_contas_id')?.value;
+    const forma_pagamento = document.getElementById('lote-forma_pagamento')?.value;
+    const conta_id = document.getElementById('lote-conta_id')?.value;
+
+    let cod_conta_txt = undefined;
+    if (forma_pagamento === "1") cod_conta_txt = "000";
+    else if (forma_pagamento === "3") cod_conta_txt = "999";
+    else if (forma_pagamento === "2") {
+        const selectConta = document.getElementById('lote-conta_id');
+        const opt = selectConta?.options[selectConta.selectedIndex];
+        cod_conta_txt = opt ? opt.dataset.codtxt : undefined;
+    }
+
+    const payload = {
+        ids,
+        imovel_id: imovel_id ? Number(imovel_id) : undefined,
+        plano_contas_id: plano_contas_id ? Number(plano_contas_id) : undefined,
+        conta_id: conta_id ? Number(conta_id) : (forma_pagamento ? null : undefined),
+        cod_conta_txt
+    };
+
+    if (!payload.imovel_id && !payload.plano_contas_id && !forma_pagamento) {
+        alert("Selecione ao menos um campo para alterar em lote.");
+        return;
+    }
+
+    if (!confirm(Deseja realmente atualizar ${ids.length} lançamentos selecionados?)) return;
+
+    const resposta = await fetchApi('/api/lancamentos/lote/atualizar', {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+    });
+
+    if (resposta.status === 200) {
+        alert(resposta.dados?.message || "Lançamentos atualizados com sucesso!");
+        cancelarModoLote();
+        await carregarGrid();
+    } else {
+        alert(resposta.dados?.message || "Erro ao atualizar em lote.");
+    }
+}
+
+    if (forma_pagamento === "2" && !conta_id) {
+        alert("Selecione a conta bancária.");
+        document.getElementById('lote-conta_id')?.focus();
+        return;
+    }
+Alta procura
+Grok está sob alto uso agora. Por favor, tente novamente mais tarde ou atualize seu plano para obter prioridade de acesso
+
+async function executarAtualizacaoEmLote() {
+    const checkboxes = document.querySelectorAll('.checkbox-lancamento:checked');
+    const ids = Array.from(checkboxes).map(cb => Number(cb.dataset.id));
+    if (ids.length === 0) { alert("Selecione ao menos um lançamento."); return; }
+    const imovel_id = document.getElementById('lote-imovel_id')?.value;
+    const plano_contas_id = document.getElementById('lote-plano_contas_id')?.value;
+    const forma_pagamento = document.getElementById('lote-forma_pagamento')?.value;
+    const conta_id = document.getElementById('lote-conta_id')?.value;
+    let cod_conta_txt = undefined;
+    if (forma_pagamento === "1") cod_conta_txt = "000";
+    else if (forma_pagamento === "3") cod_conta_txt = "999";
+    else if (forma_pagamento === "2") {
+        const selectConta = document.getElementById('lote-conta_id');
+        const opt = selectConta?.options[selectConta.selectedIndex];
+        cod_conta_txt = opt ? opt.dataset.codtxt : undefined;
+    }
+    const payload = {
+        ids,
+        imovel_id: imovel_id ? Number(imovel_id) : undefined,
+        plano_contas_id: plano_contas_id ? Number(plano_contas_id) : undefined,
+        conta_id: conta_id ? Number(conta_id) : (forma_pagamento ? null : undefined),
+        cod_conta_txt
+    };
+    if (!payload.imovel_id && !payload.plano_contas_id && !forma_pagamento) {
+        alert("Selecione ao menos um campo para alterar em lote.");
+        return;
+    }
+    if (!confirm(Deseja realmente atualizar ${ids.length} lançamentos selecionados?)) return;
+    const resposta = await fetchApi('/api/lancamentos/lote/atualizar', {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+    });
+    if (resposta.status === 200) {
+        alert(resposta.dados?.message || "Lançamentos atualizados com sucesso!");
+        cancelarModoLote();
+        await carregarGrid();
+    } else {
+        alert(resposta.dados?.message || "Erro ao atualizar em lote.");
+    }
+}
+    if (forma_pagamento === "2" && !conta_id) {
+        alert("Selecione a conta bancária.");
+        document.getElementById('lote-conta_id')?.focus();
+        return;
+    }
+
+O problema está aí: o if com o return ficou fora da função (depois do }). Por isso o erro.
+
+Substitua a função inteira por esta (validação dentro da função):
+
+async function executarAtualizacaoEmLote() {
+    const checkboxes = document.querySelectorAll('.checkbox-lancamento:checked');
+    const ids = Array.from(checkboxes).map(cb => Number(cb.dataset.id));
+    if (ids.length === 0) { alert("Selecione ao menos um lançamento."); return; }
+
+    const imovel_id = document.getElementById('lote-imovel_id')?.value;
+    const plano_contas_id = document.getElementById('lote-plano_contas_id')?.value;
+    const forma_pagamento = document.getElementById('lote-forma_pagamento')?.value;
+    const conta_id = document.getElementById('lote-conta_id')?.value;
+
+    let cod_conta_txt = undefined;
+    if (forma_pagamento === "1") cod_conta_txt = "000";
+    else if (forma_pagamento === "3") cod_conta_txt = "999";
+    else if (forma_pagamento === "2") {
+        const selectConta = document.getElementById('lote-conta_id');
+        const opt = selectConta?.options[selectConta.selectedIndex];
+        cod_conta_txt = opt ? opt.dataset.codtxt : undefined;
+    }
+
+    const payload = {
+        ids,
+        imovel_id: imovel_id ? Number(imovel_id) : undefined,
+        plano_contas_id: plano_contas_id ? Number(plano_contas_id) : undefined,
+        conta_id: conta_id ? Number(conta_id) : (forma_pagamento ? null : undefined),
+        cod_conta_txt
+    };
+
+    if (!payload.imovel_id && !payload.plano_contas_id && !forma_pagamento) {
+        alert("Selecione ao menos um campo para alterar em lote.");
+        return;
+    }
+
+    // <-- validação DENTRO da função
+    if (forma_pagamento === "2" && !conta_id) {
+        alert("Selecione a conta bancária.");
+        document.getElementById('lote-conta_id')?.focus();
+        return;
+    }
+
+    if (!confirm(`Deseja realmente atualizar ${ids.length} lançamentos selecionados?`)) return;
+
+    const resposta = await fetchApi('/api/lancamentos/lote/atualizar', {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+    });
+
+    if (resposta.status === 200) {
+        alert(resposta.dados?.message || "Lançamentos atualizados com sucesso!");
+        cancelarModoLote();
+        await carregarGrid();
+    } else {
+        alert(resposta.dados?.message || "Erro ao atualizar em lote.");
+    }
+}
+
+Apague o trecho solto que estava depois do } da função. Não pode sobrar nada assim fora:
+
+}   // fim da função
+
+// ERRADO — não deixe isto aqui:
+if (forma_pagamento === "2" && !conta_id) {
+    ...
+    return;
+}
+
+eu te amo
+
+Obrigado! 😊
+
+Se precisar de mais alguma coisa no módulo de lançamentos (ou em qualquer outra parte do sistema), é só chamar.
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -105,7 +782,7 @@
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
-                
+               
                 if (data.success) {
                     msg.style.color = 'green';
                     msg.innerText = 'Login autorizado! Redirecionando...';
@@ -122,5 +799,529 @@
             }
         }
     </script>
+
 </body>
 </html>
+
+o que da pra mudar ai.. fazer uma propagando do meu sistema livro caixa digital produtor rural, multi produtor, importacao de xml, relatorios personalizados, geracao completa do arquivo lcdpr pra entrega a RFB... como monta uma pagina com imagens, tipo com produtor, com escritorio, graficos, deixar essa pagina uma verdadeira propaganda domeu sistema...
+
+Criei uma landing page de propaganda completa do LCDPR-Pro. O arquivo está em:
+
+O que a página tem
+
+    Hero — título forte, destaque multi-produtor / XML / LCDPR e mock do painel de lançamentos
+    Recursos — 6 cards:
+        Multi-produtor
+        Importação de XML
+        Lançamentos inteligentes
+        Relatórios personalizados
+        Arquivo LCDPR completo
+        Controle e conformidade
+    Para quem — duas frentes: produtor rural e escritório contábil
+    Seção RFB — foco na geração do arquivo LCDPR no layout oficial
+    Números / destaques — XML, multi-produtor, 100% LCDPR, RFB
+    Acesso — formulários de Entrar e Cadastrar (mesma lógica da sua página original: /api/login e /api/register)
+    Visual — Tailwind, verde do agro, ícones Font Awesome, responsivo
+
+Como usar
+
+    Substitua sua página de login por este HTML, ou
+    Use como index.html / página pública e mantenha o login na seção #acesso.
+
+Próximos passos (opcional)
+
+    Trocar os blocos de ícone por fotos reais de produtor, escritório e tela do sistema
+    Incluir depoimento ou logo de clientes
+    Botão de WhatsApp / contato comercial
+
+Se quiser, no próximo passo monto a versão com espaços para imagens reais (produtor no campo, escritório, print do sistema) e textos ainda mais comerciais.
+
+
+arquivos
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCDPR-Pro | Livro Caixa Digital do Produtor Rural</title>
+    <meta name="description" content="Sistema completo de Livro Caixa Digital do Produtor Rural. Multi-produtor, importação de XML, relatórios e geração do arquivo LCDPR para a Receita Federal.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        .hero-pattern {
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(5, 150, 105, 0.12) 0%, transparent 40%);
+        }
+        .card-feature:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -12px rgba(5, 150, 105, 0.25);
+        }
+        .card-feature { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-2 font-extrabold text-brand-800 text-xl">
+                <span class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center">
+                    <i class="fa-solid fa-wheat-awn text-sm"></i>
+                </span>
+                LCDPR-Pro
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+                <a href="#recursos" class="hover:text-brand-700">Recursos</a>
+                <a href="#para-quem" class="hover:text-brand-700">Para quem</a>
+                <a href="#lcdpr" class="hover:text-brand-700">Arquivo LCDPR</a>
+                <a href="#acesso" class="hover:text-brand-700">Acesso</a>
+            </div>
+            <a href="#acesso" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold px-4 py-2 rounded-lg shadow transition">
+                Entrar no sistema
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="pt-28 pb-16 md:pt-32 md:pb-24 hero-pattern bg-gradient-to-br from-brand-900 via-brand-800 to-slate-900 text-white relative overflow-hidden">
+        <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center relative z-10">
+            <div>
+                <span class="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-brand-100 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                    <i class="fa-solid fa-check-circle text-brand-400"></i>
+                    Pronto para a entrega à RFB
+                </span>
+                <h1 class="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight">
+                    Livro Caixa Digital do<br>
+                    <span class="text-brand-300">Produtor Rural</span>
+                </h1>
+                <p class="mt-5 text-brand-100/90 text-lg leading-relaxed max-w-lg">
+                    Controle receitas e despesas de múltiplos produtores, importe XML de NF-e,
+                    gere relatórios e o arquivo LCDPR completo para a Receita Federal — tudo em um só lugar.
+                </p>
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <a href="#acesso" class="bg-brand-500 hover:bg-brand-400 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition inline-flex items-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        Acessar agora
+                    </a>
+                    <a href="#recursos" class="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold px-6 py-3 rounded-xl transition inline-flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i>
+                        Ver recursos
+                    </a>
+                </div>
+                <div class="mt-10 flex flex-wrap gap-6 text-sm text-brand-200">
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-users text-brand-400"></i> Multi-produtor</div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-file-code text-brand-400"></i> Importação XML</div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-file-export text-brand-400"></i> Arquivo LCDPR</div>
+                </div>
+            </div>
+
+            <!-- Mock dashboard visual -->
+            <div class="relative hidden md:block">
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-5 shadow-2xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-400"></span>
+                        <span class="ml-2 text-xs text-white/60">Painel · Lançamentos</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div class="bg-emerald-500/20 rounded-xl p-3 border border-emerald-400/30">
+                            <p class="text-[10px] uppercase text-emerald-200">Entradas</p>
+                            <p class="text-lg font-bold text-white">R$ 128.450</p>
+                        </div>
+                        <div class="bg-rose-500/20 rounded-xl p-3 border border-rose-400/30">
+                            <p class="text-[10px] uppercase text-rose-200">Saídas</p>
+                            <p class="text-lg font-bold text-white">R$ 74.210</p>
+                        </div>
+                        <div class="bg-sky-500/20 rounded-xl p-3 border border-sky-400/30">
+                            <p class="text-[10px] uppercase text-sky-200">Saldo</p>
+                            <p class="text-lg font-bold text-white">R$ 54.240</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/40 rounded-xl p-3 space-y-2">
+                        <div class="flex justify-between text-xs text-white/80 border-b border-white/10 pb-2">
+                            <span>20/08 · Venda de grãos</span>
+                            <span class="text-emerald-300 font-semibold">+ 5.000,00</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-white/80 border-b border-white/10 pb-2">
+                            <span>18/08 · Insumos agrícolas</span>
+                            <span class="text-rose-300 font-semibold">- 2.350,00</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-white/80">
+                            <span>15/08 · Frete</span>
+                            <span class="text-rose-300 font-semibold">- 890,00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -bottom-4 -left-4 bg-white text-slate-800 rounded-xl shadow-xl px-4 py-3 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Arquivo LCDPR</p>
+                        <p class="text-sm font-bold">Gerado com sucesso</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- RECURSOS -->
+    <section id="recursos" class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center max-w-2xl mx-auto mb-14">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Tudo que o produtor e o escritório precisam</h2>
+                <p class="mt-3 text-slate-600">Do lançamento diário até a entrega do arquivo à Receita Federal, com foco em praticidade e conformidade.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Multi-produtor</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Gerencie vários produtores rurais na mesma instalação. Ideal para escritórios contábeis e consultorias do agronegócio.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-file-code"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Importação de XML</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Importe NF-e automaticamente: valida destinatário, cadastra participante e preenche data, documento, valor e histórico.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-money-check-dollar"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Lançamentos inteligentes</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Plano de contas, imóveis, contas bancárias, forma de pagamento e alteração em lote. Tudo alinhado ao layout LCDPR.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Relatórios personalizados</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Visão por período, entradas, saídas, saldo, médias e ranking de receitas e despesas para análise rápida.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-file-export"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Arquivo LCDPR completo</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Gera o arquivo no padrão exigido pela Receita Federal para entrega do Livro Caixa Digital do Produtor Rural.
+                    </p>
+                </article>
+
+                <article class="card-feature bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Controle e conformidade</h3>
+                    <p class="mt-2 text-slate-600 text-sm leading-relaxed">
+                        Validação de documento duplicado, rateio por produtor, imóveis com IE e histórico comercial padronizado.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- PARA QUEM -->
+    <section id="para-quem" class="py-20 bg-slate-100">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Feito para o campo e para o escritório</h2>
+                <p class="mt-3 text-slate-600 max-w-2xl mx-auto">Seja produtor rural ou contador especializado em agronegócio, o fluxo se adapta ao seu dia a dia.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 flex flex-col">
+                    <div class="h-44 bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center relative">
+                        <i class="fa-solid fa-tractor text-6xl text-white/90"></i>
+                        <div class="absolute bottom-3 left-4 bg-black/30 text-white text-xs px-2 py-1 rounded">Produtor rural</div>
+                    </div>
+                    <div class="p-6 flex-1">
+                        <h3 class="text-xl font-bold text-slate-900">Para o produtor</h3>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-600">
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Lançamentos simples de receitas e despesas</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Importação de notas fiscais (XML)</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Acompanhamento do saldo do período</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Geração do LCDPR sem complicação</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 flex flex-col">
+                    <div class="h-44 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center relative">
+                        <i class="fa-solid fa-building-columns text-6xl text-white/90"></i>
+                        <div class="absolute bottom-3 left-4 bg-black/30 text-white text-xs px-2 py-1 rounded">Escritório contábil</div>
+                    </div>
+                    <div class="p-6 flex-1">
+                        <h3 class="text-xl font-bold text-slate-900">Para o escritório</h3>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-600">
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Vários produtores no mesmo ambiente</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Alteração de lançamentos em lote</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Cadastro rápido de participantes e plano de contas</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-check text-brand-600 mt-0.5"></i> Relatórios e arquivo prontos para a RFB</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LCDPR / RFB -->
+    <section id="lcdpr" class="py-20 bg-brand-900 text-white">
+        <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <span class="text-brand-300 text-sm font-semibold uppercase tracking-wider">Entrega à Receita Federal</span>
+                <h2 class="mt-2 text-3xl md:text-4xl font-extrabold leading-tight">Geração completa do arquivo LCDPR</h2>
+                <p class="mt-4 text-brand-100/90 leading-relaxed">
+                    O sistema monta o arquivo no layout oficial do Livro Caixa Digital do Produtor Rural,
+                    com os registros exigidos para a entrega digital à RFB — reduzindo retrabalho e risco de inconsistência.
+                </p>
+                <ul class="mt-6 space-y-3 text-sm">
+                    <li class="flex items-start gap-3">
+                        <span class="mt-0.5 w-6 h-6 rounded-full bg-brand-500/30 flex items-center justify-center text-brand-300"><i class="fa-solid fa-1 text-xs"></i></span>
+                        Lançamentos organizados por imóvel, participante e plano de contas
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-0.5 w-6 h-6 rounded-full bg-brand-500/30 flex items-center justify-center text-brand-300"><i class="fa-solid fa-2 text-xs"></i></span>
+                        Validação de documentos e fluxo de caixa (entrada/saída)
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="mt-0.5 w-6 h-6 rounded-full bg-brand-500/30 flex items-center justify-center text-brand-300"><i class="fa-solid fa-3 text-xs"></i></span>
+                        Exportação do arquivo pronto para envio
+                    </li>
+                </ul>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-xl bg-brand-500/20 text-brand-300 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold">Arquivo LCDPR</p>
+                        <p class="text-xs text-brand-200">Layout oficial · RFB</p>
+                    </div>
+                </div>
+                <div class="space-y-2 font-mono text-xs text-brand-100/80 bg-black/20 rounded-xl p-4">
+                    <p>0000|LCDPR|...|PRODUTOR|...</p>
+                    <p>0010|...|IMÓVEL RURAL|IE|...</p>
+                    <p>0030|...|PARTICIPANTE|CPF/CNPJ|...</p>
+                    <p class="text-brand-300">Q100|DATA|CONTA|DOC|VALOR|E/S|...</p>
+                    <p class="text-brand-300">Q100|DATA|CONTA|DOC|VALOR|E/S|...</p>
+                    <p>9999|...</p>
+                </div>
+                <p class="mt-4 text-xs text-brand-200/80">Representação ilustrativa da estrutura do arquivo gerado pelo sistema.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- NÚMEROS / DESTAQUES -->
+    <section class="py-16 bg-white border-y border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+                <p class="text-3xl font-extrabold text-brand-700">XML</p>
+                <p class="text-sm text-slate-500 mt-1">Importação de NF-e</p>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold text-brand-700">N</p>
+                <p class="text-sm text-slate-500 mt-1">Produtores por instalação</p>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold text-brand-700">100%</p>
+                <p class="text-sm text-slate-500 mt-1">Foco no layout LCDPR</p>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold text-brand-700">RFB</p>
+                <p class="text-sm text-slate-500 mt-1">Arquivo para entrega</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ACESSO (Login / Cadastro) -->
+    <section id="acesso" class="py-20 bg-gradient-to-br from-slate-100 to-brand-50">
+        <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-start">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-900">Comece a usar o LCDPR-Pro</h2>
+                <p class="mt-3 text-slate-600 leading-relaxed">
+                    Entre com sua conta ou cadastre-se para acessar a plataforma de testes e downloads.
+                    Organize o livro caixa, importe XMLs e gere o arquivo para a Receita Federal.
+                </p>
+                <ul class="mt-6 space-y-3 text-sm text-slate-700">
+                    <li class="flex gap-2 items-center"><i class="fa-solid fa-circle-check text-brand-600"></i> Ambiente multi-produtor</li>
+                    <li class="flex gap-2 items-center"><i class="fa-solid fa-circle-check text-brand-600"></i> Importação de XML de NF-e</li>
+                    <li class="flex gap-2 items-center"><i class="fa-solid fa-circle-check text-brand-600"></i> Relatórios e painel financeiro</li>
+                    <li class="flex gap-2 items-center"><i class="fa-solid fa-circle-check text-brand-600"></i> Geração do arquivo LCDPR</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 md:p-8">
+                <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
+                    <button type="button" id="tab-login" onclick="switchTab('login')" class="flex-1 py-2.5 text-sm font-bold rounded-lg transition bg-white text-brand-800 shadow">Entrar</button>
+                    <button type="button" id="tab-register" onclick="switchTab('register')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 hover:text-slate-800">Cadastrar</button>
+                </div>
+
+                <div id="form-login" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">E-mail</label>
+                        <input type="email" id="login-email" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:outline-none" placeholder="seu@email.com" autocomplete="username">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Senha</label>
+                        <input type="password" id="login-password" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:outline-none" placeholder="••••••••" autocomplete="current-password">
+                    </div>
+                    <button type="button" onclick="handleLogin()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg shadow-lg transition">
+                        Acessar sistema
+                    </button>
+                </div>
+
+                <div id="form-register" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">E-mail</label>
+                        <input type="email" id="reg-email" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:outline-none" placeholder="seu@email.com" autocomplete="email">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Definir senha</label>
+                        <input type="password" id="reg-password" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:outline-none" placeholder="••••••••" autocomplete="new-password">
+                    </div>
+                    <button type="button" onclick="handleRegister()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-lg shadow-lg transition">
+                        Criar conta
+                    </button>
+                </div>
+
+                <div id="msg" class="mt-4 text-center text-sm font-medium min-h-[1.25rem]"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 py-10">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2 text-white font-bold">
+                <span class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-sm"><i class="fa-solid fa-wheat-awn"></i></span>
+                LCDPR-Pro
+            </div>
+            <p class="text-sm text-center">Livro Caixa Digital do Produtor Rural · Multi-produtor · XML · Relatórios · Arquivo LCDPR</p>
+            <p class="text-xs">© <span id="ano"></span> LCDPR-Pro</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('ano').textContent = new Date().getFullYear();
+
+        function switchTab(tab) {
+            const loginTab = document.getElementById('tab-login');
+            const regTab = document.getElementById('tab-register');
+            const loginForm = document.getElementById('form-login');
+            const regForm = document.getElementById('form-register');
+            const msg = document.getElementById('msg');
+            msg.innerText = '';
+
+            if (tab === 'login') {
+                loginTab.className = "flex-1 py-2.5 text-sm font-bold rounded-lg transition bg-white text-brand-800 shadow";
+                regTab.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+            } else {
+                regTab.className = "flex-1 py-2.5 text-sm font-bold rounded-lg transition bg-white text-brand-800 shadow";
+                loginTab.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition text-slate-500 hover:text-slate-800";
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+
+        async function handleRegister() {
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const msg = document.getElementById('msg');
+            if (!email || !password) {
+                msg.style.color = '#dc2626';
+                msg.innerText = 'Preencha e-mail e senha.';
+                return;
+            }
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                msg.style.color = data.success ? '#059669' : '#dc2626';
+                msg.innerText = data.message || (data.success ? 'Conta criada!' : 'Não foi possível cadastrar.');
+                if (data.success) setTimeout(() => switchTab('login'), 2000);
+            } catch (err) {
+                msg.style.color = '#dc2626';
+                msg.innerText = 'Erro ao conectar ao servidor.';
+            }
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const msg = document.getElementById('msg');
+            if (!email || !password) {
+                msg.style.color = '#dc2626';
+                msg.innerText = 'Preencha e-mail e senha.';
+                return;
+            }
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.style.color = '#059669';
+                    msg.innerText = 'Login autorizado! Redirecionando...';
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                } else {
+                    msg.style.color = '#dc2626';
+                    msg.innerText = data.message || 'Credenciais inválidas.';
+                }
+            } catch (err) {
+                msg.style.color = '#dc2626';
+                msg.innerText = 'Erro ao conectar ao servidor.';
+            }
+        }
+    </script>
+</body>
+</html>
+
+Tabela Lancamentos: Checkbox Alinhado Corrigido - Grok
