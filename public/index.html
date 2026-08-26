@@ -451,34 +451,57 @@
         }
 
         async function handleLogin() {
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
-            const msg = document.getElementById('msg');
-            if (!email || !password) {
-                msg.style.color = '#dc2626';
-                msg.innerText = 'Preencha e-mail e senha.'; // Correção aqui
-                return;
-            }
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    msg.style.color = '#059669';
-                    msg.innerText = 'Login autorizado! Redirecionando...';
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
-                } else {
-                    msg.style.color = '#dc2626';
-                    msg.innerText = data.message || 'Credenciais inválidas.';
-                }
-            } catch (err) {
-                msg.style.color = '#dc2626';
-                msg.innerText = 'Erro ao conectar ao servidor.';
-            }
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const msg = document.getElementById('msg');
+
+    if (!email || !password) {
+        msg.style.color = '#dc2626';
+        msg.innerText = 'Preencha e-mail e senha.';
+        return;
+    }
+
+    try {
+        msg.style.color = '#475569';
+        msg.innerText = 'Autenticando...';
+
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                email,
+                password
+            })
+        });
+
+        const data = await res.json();
+
+        console.log('Resposta /api/login:', data);
+        console.log('HTTP:', res.status);
+
+        if (!res.ok || !data.success) {
+            msg.style.color = '#dc2626';
+            msg.innerText = data.message || 'Credenciais inválidas.';
+            return;
         }
+
+        msg.style.color = '#059669';
+        msg.innerText = 'Login autorizado! Redirecionando...';
+
+        setTimeout(() => {
+            window.location.href = '/dashboard.html';
+        }, 500);
+
+    } catch (err) {
+        console.error('Erro no login:', err);
+
+        msg.style.color = '#dc2626';
+        msg.innerText = 'Erro ao conectar ao servidor.';
+    }
+}
     </script>
 </body>
 </html>
