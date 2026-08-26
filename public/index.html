@@ -456,7 +456,7 @@
             const msg = document.getElementById('msg');
             if (!email || !password) {
                 msg.style.color = '#dc2626';
-                msg.innerText = 'Preencha e-mail e senha.';
+                msg.innerText.textContent = 'Preencha e-mail e senha.';
                 return;
             }
             try {
