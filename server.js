@@ -90,14 +90,32 @@ app.post('/api/login', async (req, res) => {
 
         // Grava sessão
         req.session.userId = user.id;
-        req.session.email = user.email;
-        req.session.isAdmin = !!user.is_admin;
+req.session.email = user.email;
+req.session.isAdmin = !!user.is_admin;
 
-        res.json({
-            success: true,
-            message: 'Login autorizado!',
-            isAdmin: !!user.is_admin
+req.session.save((sessionErr) => {
+    if (sessionErr) {
+        console.error('Erro ao salvar sessão:', sessionErr);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Não foi possível criar a sessão de login.'
         });
+    }
+
+    console.log('Sessão criada com sucesso:', {
+        userId: req.session.userId,
+        email: req.session.email,
+        isAdmin: req.session.isAdmin,
+        sessionID: req.sessionID
+    });
+
+    res.json({
+        success: true,
+        message: 'Login autorizado!',
+        isAdmin: !!user.is_admin
+    });
+});
     } catch (err) {
         console.error('Erro no login:', err);
         res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
