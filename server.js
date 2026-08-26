@@ -6,6 +6,10 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 
 const app = express();
+
+// CORREÇÃO CRÍTICA: Necessário para plataformas como Render/Heroku (atrás de proxy HTTPS)
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -16,7 +20,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // true no Render (HTTPS)
+        secure: process.env.NODE_ENV === 'production', // true em produção (HTTPS)
         sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 horas
     }
@@ -42,7 +46,6 @@ pool.query(`CREATE TABLE IF NOT EXISTS users (
 // ---------- Middlewares de proteção ----------
 function requireAuth(req, res, next) {
     if (req.session && req.session.userId) return next();
-    // Se for página HTML, redireciona; se for API, 401
     if (req.accepts('html')) return res.redirect('/?login=required');
     return res.status(401).json({ success: false, message: 'Não autenticado.' });
 }
@@ -90,32 +93,31 @@ app.post('/api/login', async (req, res) => {
 
         // Grava sessão
         req.session.userId = user.id;
-req.session.email = user.email;
-req.session.isAdmin = !!user.is_admin;
+        req.session.email = user.email;
+        req.session.isAdmin = !!user.is_admin;
 
-req.session.save((sessionErr) => {
-    if (sessionErr) {
-        console.error('Erro ao salvar sessão:', sessionErr);
+        req.session.save((sessionErr) => {
+            if (sessionErr) {
+                console.error('Erro ao salvar sessão:', sessionErr);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Não foi possível criar a sessão de login.'
+                });
+            }
 
-        return res.status(500).json({
-            success: false,
-            message: 'Não foi possível criar a sessão de login.'
+            console.log('Sessão criada com sucesso:', {
+                userId: req.session.userId,
+                email: req.session.email,
+                isAdmin: req.session.isAdmin,
+                sessionID: req.sessionID
+            });
+
+            res.json({
+                success: true,
+                message: 'Login autorizado!',
+                isAdmin: !!user.is_admin
+            });
         });
-    }
-
-    console.log('Sessão criada com sucesso:', {
-        userId: req.session.userId,
-        email: req.session.email,
-        isAdmin: req.session.isAdmin,
-        sessionID: req.sessionID
-    });
-
-    res.json({
-        success: true,
-        message: 'Login autorizado!',
-        isAdmin: !!user.is_admin
-    });
-});
     } catch (err) {
         console.error('Erro no login:', err);
         res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
@@ -174,11 +176,8 @@ app.get('/admin.html', requireAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Arquivos estáticos públicos (index, CSS, JS, imagens...)
-// NÃO coloque dashboard.html / admin.html acessíveis só por static sem proteção
-app.use(express.static(path.join(__dirname, 'public'), {
-    // opcional: index
-}));
+// Arquivos estáticos públicos
+app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
